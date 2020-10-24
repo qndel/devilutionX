@@ -259,6 +259,8 @@ extern BOOL uitemflag;
 extern int itemavail[MAXITEMS];
 extern ItemStruct item[MAXITEMS + 1];
 extern CornerStoneStruct CornerStone;
+extern BYTE *itemanims[ITEMTYPES];
+extern BYTE ItemAnimLs[ITEMTYPES];
 extern BOOL UniqueItemFlag[128];
 extern int numitems;
 

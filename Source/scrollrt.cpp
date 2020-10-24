@@ -14,9 +14,6 @@ int light_table_index;
 DWORD sgdwCursWdtOld;
 DWORD sgdwCursX;
 DWORD sgdwCursY;
-/**
- * Lower bound of back buffer.
- */
 DWORD sgdwCursHgt;
 
 /**
@@ -583,7 +580,11 @@ static void drawFloor(CelOutputBuffer out, int x, int y, int sx, int sy)
  */
 static void DrawItem(CelOutputBuffer out, int x, int y, int sx, int sy, BOOL pre)
 {
+	int nCel;
 	char bItem = dItem[x][y];
+	ItemStruct *pItem;
+	BYTE *pCelBuff;
+	DWORD *pFrameTable;
 
 	assert((unsigned char)bItem <= MAXITEMS);
 
@@ -1194,6 +1195,8 @@ void DrawView(CelOutputBuffer out, int StartX, int StartY)
 	if (automapflag) {
 		DrawAutomap(out.subregionY(0, gnViewportHeight));
 	}
+	
+	HighlightItemsNameOnMap();
 	DrawMonsterHealthBar(out);
 
 	if (stextflag && !qtextflag)
@@ -1234,7 +1237,7 @@ void DrawView(CelOutputBuffer out, int StartX, int StartY)
 		DrawDiabloMsg(out);
 	}
 	if (deathflag) {
-		RedBack(out);
+		RedBack();
 	} else if (PauseMode != 0) {
 		gmenu_draw_pause(out);
 	}
@@ -1244,8 +1247,8 @@ void DrawView(CelOutputBuffer out, int StartX, int StartY)
 	gmenu_draw(out);
 	doom_draw(out);
 	DrawInfoBox(out);
-	DrawLifeFlask(out);
-	DrawManaFlask(out);
+	DrawLifeFlask();
+	DrawManaFlask();
 }
 
 extern SDL_Surface *pal_surface;
@@ -1260,8 +1263,8 @@ void ClearScreenBuffer()
 	assert(pal_surface != NULL);
 
 	SDL_Rect SrcRect = {
-		BUFFER_BORDER_LEFT,
-		BUFFER_BORDER_TOP,
+		SCREEN_X,
+		SCREEN_Y,
 		gnScreenWidth,
 		gnScreenHeight,
 	};
@@ -1393,16 +1396,13 @@ static void DrawFPS(CelOutputBuffer out)
  */
 static void DoBlitScreen(Sint16 dwX, Sint16 dwY, Uint16 dwWdt, Uint16 dwHgt)
 {
-	// In SDL1 SDL_Rect x and y are Sint16. Cast explicitly to avoid a compiler warning.
-	using CoordType = decltype(SDL_Rect {}.x);
-	SDL_Rect src_rect {
-		static_cast<CoordType>(BUFFER_BORDER_LEFT + dwX),
-		static_cast<CoordType>(BUFFER_BORDER_TOP + dwY),
-		dwWdt, dwHgt
-	};
-	SDL_Rect dst_rect { dwX, dwY, dwWdt, dwHgt };
+	SDL_Rect SrcRect = { dwX, dwY, dwWdt, dwHgt };
+	SrcRect.x += SCREEN_X;
+	SrcRect.y += SCREEN_Y;
 
-	BltFast(&src_rect, &dst_rect);
+	SDL_Rect DstRect = { dwX, dwY, dwWdt, dwHgt };
+
+	BltFast(&SrcRect, &DstRect);
 }
 
 /**
@@ -1479,7 +1479,7 @@ void scrollrt_draw_game_screen(BOOL draw_cursor)
 
 	if (draw_cursor) {
 		lock_buf(0);
-		scrollrt_draw_cursor_back_buffer(GlobalBackBuffer());
+		scrollrt_draw_cursor_back_buffer();
 		unlock_buf(0);
 	}
 	RenderPresent();
@@ -1537,7 +1537,7 @@ void DrawAndBlit()
 		DrawTalkPan(out);
 		hgt = gnScreenHeight;
 	}
-	DrawXPBar(out);
+	DrawXPBar();
 	scrollrt_draw_cursor_item(out);
 
 	DrawFPS(out);
@@ -1547,7 +1547,7 @@ void DrawAndBlit()
 	DrawMain(hgt, ddsdesc, drawhpflag, drawmanaflag, drawsbarflag, drawbtnflag);
 
 	lock_buf(0);
-	scrollrt_draw_cursor_back_buffer(GlobalBackBuffer());
+	scrollrt_draw_cursor_back_buffer();
 	unlock_buf(0);
 	RenderPresent();
 
