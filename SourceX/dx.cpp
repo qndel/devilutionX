@@ -7,6 +7,7 @@
 #include "../3rdParty/Storm/Source/storm.h"
 #include "display.h"
 #include <SDL.h>
+#include <SDL_image.h>
 
 namespace dvl {
 
@@ -31,6 +32,29 @@ SDL_Surface *renderer_texture_surface = NULL;
 
 /** 8-bit surface wrapper around #gpBuffer */
 SDL_Surface *pal_surface;
+
+bool preloadOrbs = true;
+SDL_Texture *yo;
+SDL_Rect hprect;
+
+static void loadAnimatedOrbs()
+{
+	if (!preloadOrbs)
+		return;
+	preloadOrbs = false;
+	SDL_Surface *loadedSurface = IMG_Load("health/health_0001.png");
+	if (loadedSurface == NULL)
+		ErrSdl();
+	yo = SDL_CreateTextureFromSurface(renderer, loadedSurface);
+	if (yo == NULL)
+		ErrSdl();
+	if (SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_ADD) < 0)
+		ErrSdl();
+	hprect.x = 96;
+	hprect.y = 335;
+	hprect.w = loadedSurface->w;
+	hprect.h = loadedSurface->h;
+}
 
 static void dx_create_back_buffer()
 {
@@ -261,6 +285,7 @@ void RenderPresent()
 
 #ifndef USE_SDL1
 	if (renderer) {
+		loadAnimatedOrbs();
 		if (SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch) <= -1) { //pitch is 2560
 			ErrSdl();
 		}
@@ -277,6 +302,10 @@ void RenderPresent()
 		if (SDL_RenderCopy(renderer, texture, NULL, NULL) <= -1) {
 			ErrSdl();
 		}
+
+		if (SDL_RenderCopy(renderer, yo, NULL, &hprect) < 0)
+			ErrSdl();
+
 		SDL_RenderPresent(renderer);
 
 		if (!vsyncEnabled) {
