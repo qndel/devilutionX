@@ -14,9 +14,6 @@ int light_table_index;
 DWORD sgdwCursWdtOld;
 DWORD sgdwCursX;
 DWORD sgdwCursY;
-/**
- * Lower bound of back buffer.
- */
 DWORD sgdwCursHgt;
 
 /**
