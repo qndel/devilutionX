@@ -31,6 +31,23 @@ bool isLabelHighlighted = false;
 BYTE *qolbuff;
 int labelCenterOffsets[ITEMTYPES];
 
+int drawMinX;
+int drawMaxX;
+/**
+ * 0 = disabled
+ * 1 = highlight when alt pressed
+ * 2 = hide when alt pressed
+ * 3 = always highlight
+ */
+int highlightItemsMode = 0;
+bool altPressed = false;
+bool generatedLabels = false;
+bool isGeneratingLabels = false;
+bool isLabelHighlighted = false;
+
+BYTE *qolbuff;
+int labelCenterOffsets[ITEMTYPES];
+
 int GetTextWidth(const char *s)
 {
 	int l = 0;
