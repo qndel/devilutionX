@@ -21,11 +21,10 @@ void InitQol();
 void DrawMonsterHealthBar(CelOutputBuffer out);
 void DrawXPBar(CelOutputBuffer out);
 void AutoGoldPickup(int pnum);
-void UpdateLabels(BYTE *dst, int width);
-void GenerateLabelOffsets();
+void UpdateLabels(CelOutputBuffer out, BYTE *dst, int width);
+void GenerateLabelOffsets(CelOutputBuffer out);
 void AddItemToDrawQueue(int x, int y, int id);
 void HighlightItemsNameOnMap();
-void SaveHotkeys();
 void RepeatClicks();
 void AutoPickGold(int pnum);
 

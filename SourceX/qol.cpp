@@ -8,11 +8,6 @@
 #include "DiabloUI/art_draw.h"
 
 DEVILUTION_BEGIN_NAMESPACE
-namespace {
-
-Art ArtHealthBox;
-Art ArtResistance;
-Art ArtHealth;
 
 int drawMinX;
 int drawMaxX;
@@ -30,6 +25,12 @@ bool isLabelHighlighted = false;
 
 BYTE *qolbuff;
 int labelCenterOffsets[ITEMTYPES];
+
+namespace {
+
+Art ArtHealthBox;
+Art ArtResistance;
+Art ArtHealth;
 
 int GetTextWidth(const char *s)
 {
@@ -235,9 +236,9 @@ public:
 	int y;
 	int width;
 	int height;
-	int color;
+	text_color color;
 	char text[64];
-	drawingQueue(int x2, int y2, int width2, int height2, int Row2, int Col2, int ItemID2, int q2, char *text2)
+	drawingQueue(int x2, int y2, int width2, int height2, int Row2, int Col2, int ItemID2, text_color q2, char *text2)
 	{
 		x = x2;
 		y = y2;
@@ -253,9 +254,10 @@ public:
 
 std::vector<drawingQueue> drawQ;
 
-void UpdateLabels(BYTE *dst, int width)
+void UpdateLabels(CelOutputBuffer out, BYTE *dst, int width)
 {
-	int xval = (dst - &gpBuffer[0]) % BUFFER_WIDTH;
+	//int xval = (dst - &gpBuffer[0]) % BUFFER_WIDTH;
+	int xval = (dst - out.begin()) % out.w();
 	if (xval < drawMinX)
 		drawMinX = xval;
 	xval += width;
@@ -263,17 +265,17 @@ void UpdateLabels(BYTE *dst, int width)
 		drawMaxX = xval;
 }
 
-void GenerateLabelOffsets()
+void GenerateLabelOffsets(CelOutputBuffer out)
 {
 	if (generatedLabels)
 		return;
 	isGeneratingLabels = true;
 	int itemTypes = gbIsHellfire ? ITEMTYPES : 35;
 	for (int i = 0; i < itemTypes; i++) {
-		drawMinX = BUFFER_WIDTH;
+		drawMinX = BUFFER_BORDER_LEFT;
 		drawMaxX = 0;
-		CelClippedDraw(BUFFER_WIDTH / 2 - 16, 351, itemanims[i], ItemAnimLs[i], 96);
-		labelCenterOffsets[i] = drawMinX - BUFFER_WIDTH / 2 + (drawMaxX - drawMinX) / 2;
+		CelClippedDrawTo(out, out.w() / 2 - 16, 351, itemanims[i], ItemAnimLs[i], 96);
+		labelCenterOffsets[i] = drawMinX - out.w() / 2 + (drawMaxX - drawMinX) / 2;
 	}
 	isGeneratingLabels = false;
 	generatedLabels = true;
@@ -294,15 +296,15 @@ void AddItemToDrawQueue(int x, int y, int id)
 
 	int nameWidth = GetTextWidth((char *)textOnGround);
 	x += labelCenterOffsets[ItemCAnimTbl[it->_iCurs]];
-	x -= SCREEN_X;
-	y -= SCREEN_Y;
+	x -= BUFFER_BORDER_LEFT;
+	y -= BUFFER_BORDER_TOP;
 	y -= TILE_HEIGHT;
 	if (!zoomflag) {
 		x <<= 1;
 		y <<= 1;
 	}
 	x -= nameWidth / 2;
-	char clr = COL_WHITE;
+	text_color clr = COL_WHITE;
 	if (it->_iMagical == ITEM_QUALITY_MAGIC)
 		clr = COL_BLUE;
 	if (it->_iMagical == ITEM_QUALITY_UNIQUE)
@@ -365,8 +367,8 @@ void HighlightItemsNameOnMap()
 		int bgcolor = 0;
 		if (pcursitem == t.ItemID)
 			bgcolor = 134;
-		FillRect(t.x, t.y - t.height, t.width + 1, t.height, bgcolor);
 		CelOutputBuffer out = GlobalBackBuffer();
+		FillRect(out, t.x, t.y - t.height, t.width + 1, t.height, bgcolor);
 		PrintGameStr(out, t.x, t.y - 1, t.text, t.color);
 	}
 	drawQ.clear();
