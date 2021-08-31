@@ -3427,8 +3427,6 @@ void SpawnItem(MonsterStruct &monster, Point position, bool sendmsg)
 	int8_t mLevel = monster.mLevel;
 	if (!gbIsHellfire && monster.MType->mtype == MT_DIABLO)
 		mLevel -= 15;
-	if (mLevel > CF_LEVEL)
-		mLevel = CF_LEVEL;
 
 	SetupAllItems(item, idx, AdvanceRndSeed(), mLevel, uper, onlygood, false, false);
 
