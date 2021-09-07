@@ -118,6 +118,8 @@ struct GameplayOptions {
 	bool bShowMonsterType;
 	/** @brief Locally disable clicking on shrines which permanently cripple character. */
 	bool bDisableCripplingShrines;
+	/** @brief Recolors stairs on automap based on their type - down = red, up = blue, town entrance = white, quest = original color */
+	bool bRecolorStairs;
 };
 
 struct ControllerOptions {

@@ -12,9 +12,11 @@
 #include "engine/render/automap_render.hpp"
 #include "inv.h"
 #include "monster.h"
+#include "options.h"
 #include "palette.h"
 #include "player.h"
 #include "setmaps.h"
+#include "trigs.h"
 #include "utils/language.h"
 #include "utils/stdcompat/algorithm.hpp"
 #include "utils/ui_fwd.h"
@@ -130,13 +132,13 @@ void DrawDirt(const Surface &out, Point center)
 	out.SetPixel({ center.x, center.y + AmLine16 }, MapColorsDim);
 }
 
-void DrawStairs(const Surface &out, Point center)
+void DrawStairs(const Surface &out, Point center, uint8_t color)
 {
 	constexpr int NumStairSteps = 4;
 	const Displacement offset = { -AmLine8, AmLine4 };
 	Point p = { center.x - AmLine8, center.y - AmLine8 - AmLine4 };
 	for (int i = 0; i < NumStairSteps; ++i) {
-		DrawMapLineSE(out, p, AmLine16, MapColorsBright);
+		DrawMapLineSE(out, p, AmLine16, color);
 		p += offset;
 	}
 }
@@ -202,59 +204,6 @@ void DrawCaveVertical(const Surface &out, Point center, AutomapTile tile)
 		DrawMapVerticalDoor(out, { center.x + AmLine16, center.y + AmLine8 });
 	} else {
 		DrawMapLineNE(out, { center.x, center.y + AmLine16 }, AmLine16, MapColorsDim);
-	}
-}
-
-/**
- * @brief Renders the given automap shape at the specified screen coordinates.
- */
-void DrawAutomapTile(const Surface &out, Point center, AutomapTile tile)
-{
-	if (tile.HasFlag(AutomapTile::Flags::Dirt)) {
-		DrawDirt(out, center);
-	}
-
-	if (tile.HasFlag(AutomapTile::Flags::Stairs)) {
-		DrawStairs(out, center);
-	}
-
-	switch (tile.type) {
-	case AutomapTile::Types::Diamond: // stand-alone column or other unpassable object
-		DrawDiamond(out, { center.x, center.y - AmLine8 }, MapColorsDim);
-		break;
-	case AutomapTile::Types::Vertical:
-	case AutomapTile::Types::FenceVertical:
-		DrawVertical(out, center, tile);
-		break;
-	case AutomapTile::Types::Horizontal:
-	case AutomapTile::Types::FenceHorizontal:
-		DrawHorizontal(out, center, tile);
-		break;
-	case AutomapTile::Types::Cross:
-		DrawVertical(out, center, tile);
-		DrawHorizontal(out, center, tile);
-		break;
-	case AutomapTile::Types::CaveHorizontalCross:
-		DrawVertical(out, center, tile);
-		DrawCaveHorizontal(out, center, tile);
-		break;
-	case AutomapTile::Types::CaveVerticalCross:
-		DrawHorizontal(out, center, tile);
-		DrawCaveVertical(out, center, tile);
-		break;
-	case AutomapTile::Types::CaveHorizontal:
-		DrawCaveHorizontal(out, center, tile);
-		break;
-	case AutomapTile::Types::CaveVertical:
-		DrawCaveVertical(out, center, tile);
-		break;
-	case AutomapTile::Types::CaveCross:
-		DrawCaveHorizontal(out, center, tile);
-		DrawCaveVertical(out, center, tile);
-		break;
-	case AutomapTile::Types::Corner:
-	case AutomapTile::Types::None:
-		break;
 	}
 }
 
@@ -453,6 +402,82 @@ AutomapTile GetAutomapTypeView(Point map)
 	}
 
 	return GetAutomapType(map);
+}
+
+/**
+ * @brief Renders the given automap shape at the specified screen coordinates.
+ */
+void DrawAutomapTile(const Surface &out, Point center, Point map)
+{
+	AutomapTile tile = GetAutomapTypeView(map);
+	if (tile.HasFlag(AutomapTile::Flags::Dirt)) {
+		DrawDirt(out, center);
+	}
+
+	if (tile.HasFlag(AutomapTile::Flags::Stairs)) {
+		uint8_t color = MapColorsBright;
+		if (sgOptions.Gameplay.bRecolorStairs) {
+			Point mapToDungeon = map * 2 + Displacement { 16, 16 };
+			int radius = 2;
+			if (leveltype == DTYPE_HELL)
+				radius = 6; //hell stairs are bigger, detect all segments
+			for (int j = 0; j < numtrigs; j++) {
+				if (mapToDungeon.ApproxDistance(trigs[j].position) <= radius) {
+					switch (trigs[j]._tmsg) {
+					case WM_DIABTWARPUP:
+						color = PAL16_GRAY;
+						break;
+					case WM_DIABNEXTLVL:
+						color = PAL8_RED;
+						break;
+					case WM_DIABPREVLVL:
+						color = PAL8_BLUE;
+						break;
+					}
+				}
+			}
+		}
+		DrawStairs(out, center, color);
+	}
+
+	switch (tile.type) {
+	case AutomapTile::Types::Diamond: // stand-alone column or other unpassable object
+		DrawDiamond(out, { center.x, center.y - AmLine8 }, MapColorsDim);
+		break;
+	case AutomapTile::Types::Vertical:
+	case AutomapTile::Types::FenceVertical:
+		DrawVertical(out, center, tile);
+		break;
+	case AutomapTile::Types::Horizontal:
+	case AutomapTile::Types::FenceHorizontal:
+		DrawHorizontal(out, center, tile);
+		break;
+	case AutomapTile::Types::Cross:
+		DrawVertical(out, center, tile);
+		DrawHorizontal(out, center, tile);
+		break;
+	case AutomapTile::Types::CaveHorizontalCross:
+		DrawVertical(out, center, tile);
+		DrawCaveHorizontal(out, center, tile);
+		break;
+	case AutomapTile::Types::CaveVerticalCross:
+		DrawHorizontal(out, center, tile);
+		DrawCaveVertical(out, center, tile);
+		break;
+	case AutomapTile::Types::CaveHorizontal:
+		DrawCaveHorizontal(out, center, tile);
+		break;
+	case AutomapTile::Types::CaveVertical:
+		DrawCaveVertical(out, center, tile);
+		break;
+	case AutomapTile::Types::CaveCross:
+		DrawCaveHorizontal(out, center, tile);
+		DrawCaveVertical(out, center, tile);
+		break;
+	case AutomapTile::Types::Corner:
+	case AutomapTile::Types::None:
+		break;
+	}
 }
 
 /**
@@ -680,14 +705,14 @@ void DrawAutomap(const Surface &out)
 	for (int i = 0; i <= cells + 1; i++) {
 		Point tile1 = screen;
 		for (int j = 0; j < cells; j++) {
-			DrawAutomapTile(out, tile1, GetAutomapTypeView({ map.x + j, map.y - j }));
+			DrawAutomapTile(out, tile1, { map.x + j, map.y - j });
 			tile1.x += AmLine64;
 		}
 		map.y++;
 
 		Point tile2 { screen.x - AmLine32, screen.y + AmLine16 };
 		for (int j = 0; j <= cells; j++) {
-			DrawAutomapTile(out, tile2, GetAutomapTypeView({ map.x + j, map.y - j }));
+			DrawAutomapTile(out, tile2, { map.x + j, map.y - j });
 			tile2.x += AmLine64;
 		}
 		map.x++;
