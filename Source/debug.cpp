@@ -569,25 +569,29 @@ std::string DebugCmdSpawnMonster(const string_view parameter)
 	std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::tolower(c); });
 
 	int mtype = -1;
-	for (int i = 0; i < 138; i++) {
-		auto mondata = MonstersData[i];
+	int uniqueIndex = -1;
+	for (int i = 0; UniqueMonstersData[i].mtype != MT_INVALID; i++) {
+		auto mondata = UniqueMonstersData[i];
 		std::string monsterName(mondata.mName);
 		std::transform(monsterName.begin(), monsterName.end(), monsterName.begin(), [](unsigned char c) { return std::tolower(c); });
 		if (monsterName.find(name) == std::string::npos)
 			continue;
-		mtype = i;
-		break;
+		mtype = mondata.mtype;
+		uniqueIndex = i;
+		if (monsterName == name) // to support partial name matching but always choose the correct monster if full name is given
+			break;
 	}
 
 	if (mtype == -1) {
-		for (int i = 0; i < 100; i++) {
-			auto mondata = UniqueMonstersData[i];
+		for (int i = 0; i < NUM_MTYPES; i++) {
+			auto mondata = MonstersData[i];
 			std::string monsterName(mondata.mName);
 			std::transform(monsterName.begin(), monsterName.end(), monsterName.begin(), [](unsigned char c) { return std::tolower(c); });
 			if (monsterName.find(name) == std::string::npos)
 				continue;
-			mtype = mondata.mtype;
-			break;
+			mtype = i;
+			if (monsterName == name) // to support partial name matching but always choose the correct monster if full name is given
+				break;
 		}
 	}
 
@@ -608,6 +612,7 @@ std::string DebugCmdSpawnMonster(const string_view parameter)
 	if (!found) {
 		LevelMonsterTypes[id].mtype = static_cast<_monster_id>(mtype);
 		InitMonsterGFX(id);
+		InitMonsterSND(id);
 		LevelMonsterTypes[id].mPlaceFlags |= PLACE_SCATTER;
 		LevelMonsterTypes[id].mdeadval = 1;
 	}
@@ -625,8 +630,15 @@ std::string DebugCmdSpawnMonster(const string_view parameter)
 			if (!IsTileWalkable(pos))
 				continue;
 
-			if (AddMonster(pos, myPlayer._pdir, id, true) < 0)
+			int mon = AddMonster(pos, myPlayer._pdir, id, true);
+			if (mon < 0)
 				return fmt::format("I could only summon {} Monsters. The rest strike for shorter working hours.", spawnedMonster);
+			if (uniqueIndex != -1) {
+				auto &monster = Monsters[mon];
+				PrepareUniqueMonst(monster, uniqueIndex, 0, 0, UniqueMonstersData[uniqueIndex]);
+				ActiveMonsterCount--;
+				monster._udeadval = 1;
+			}
 			spawnedMonster += 1;
 
 			if (spawnedMonster >= count)
