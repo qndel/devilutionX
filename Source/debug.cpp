@@ -598,7 +598,7 @@ std::string DebugCmdSpawnMonster(const string_view parameter)
 	if (mtype == -1)
 		return "Monster not found!";
 
-	int id = MAX_LVLMTYPES - 1;
+	int id = LevelMonsterTypeCount;
 	bool found = false;
 
 	for (int i = 0; i < LevelMonsterTypeCount; i++) {
@@ -610,11 +610,16 @@ std::string DebugCmdSpawnMonster(const string_view parameter)
 	}
 
 	if (!found) {
-		LevelMonsterTypes[id].mtype = static_cast<_monster_id>(mtype);
-		InitMonsterGFX(id);
-		InitMonsterSND(id);
-		LevelMonsterTypes[id].mPlaceFlags |= PLACE_SCATTER;
-		LevelMonsterTypes[id].mdeadval = 1;
+		if (LevelMonsterTypeCount < MAX_LVLMTYPES) {
+			LevelMonsterTypes[id].mtype = static_cast<_monster_id>(mtype);
+			InitMonsterGFX(id);
+			InitMonsterSND(id);
+			LevelMonsterTypes[id].mPlaceFlags |= PLACE_SCATTER;
+			LevelMonsterTypes[id].mdeadval = 1;
+			LevelMonsterTypeCount++;
+		} else {
+			return ("Cannot spawn additional monster types");
+		}
 	}
 
 	auto &myPlayer = Players[MyPlayerId];
