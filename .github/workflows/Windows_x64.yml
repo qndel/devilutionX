@@ -39,3 +39,20 @@ jobs:
       with:
         name: devilutionx_x64.zip
         path: build/devilutionx.zip
+        
+    - name: Move artifacts to folder with commit hash name
+      working-directory: ${{github.workspace}}
+      shell: bash
+      run: mkdir ${{ github.sha }} && mv build/devilutionx.zip ${{ github.sha }}/devilutionx_x64.zip
+      
+    - name: Pushes to another repository
+      uses: cpina/github-action-push-to-another-repository@main
+      env:
+        SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+      with:
+        source-directory: '${{ github.sha }}'
+        destination-github-username: 'qndel'
+        destination-repository-name: 'testing-actions'
+        user-email: potato@vege.com
+        commit-message: {{ github.sha }}_win_x64_build
+        target-branch: master       
