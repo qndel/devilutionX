@@ -54,7 +54,6 @@ jobs:
         destination-github-username: 'qndel'
         destination-repository-name: 'testing-actions'
         target-directory: ${{ github.sha }}
-        user-email: potato@vege.com
         commit-message: ${{ github.sha }}_win_x64_build
         target-branch: master
         
