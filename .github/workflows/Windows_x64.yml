@@ -40,6 +40,12 @@ jobs:
         name: devilutionx_x64.zip
         path: build/devilutionx.zip
 
+    - name: Move artifacts to folder with commit hash name
+      if: ${{ !env.ACT }} && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+      working-directory: ${{github.workspace}}
+      shell: bash
+      run: mkdir ${{ github.sha }} && mv build/devilutionx.zip ${{ github.sha }}/devilutionx_x64.zip
+
     - name: Pushes artifacts to another repository
       if: ${{ !env.ACT }} && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
       uses: cpina/github-action-push-to-another-repository@main
