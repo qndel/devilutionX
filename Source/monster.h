@@ -133,7 +133,7 @@ enum class LeaderRelation : uint8_t {
 };
 
 struct AnimStruct {
-	[[nodiscard]] std::optional<CelSprite> getCelSpritesForDirection(Direction direction) const
+	[[nodiscard]] OptionalCelSprite getCelSpritesForDirection(Direction direction) const
 	{
 		const byte *spriteData = celSpritesForDirections[static_cast<size_t>(direction)];
 		if (spriteData == nullptr)

@@ -40,7 +40,7 @@ public:
 	/**
 	 * @brief Animation sprite
 	 */
-	std::optional<CelSprite> celSprite;
+	OptionalCelSprite celSprite;
 	/**
 	 * @brief How many game ticks are needed to advance one Animation Frame
 	 */
@@ -83,7 +83,7 @@ public:
 	 * @param distributeFramesBeforeFrame Distribute the numSkippedFrames only before this frame
 	 * @param previewShownGameTickFragments Defines how long (in game ticks fraction) the preview animation was shown
 	 */
-	void SetNewAnimation(std::optional<CelSprite> celSprite, int numberOfFrames, int ticksPerFrame, AnimationDistributionFlags flags = AnimationDistributionFlags::None, int numSkippedFrames = 0, int distributeFramesBeforeFrame = 0, float previewShownGameTickFragments = 0.F);
+	void SetNewAnimation(OptionalCelSprite celSprite, int numberOfFrames, int ticksPerFrame, AnimationDistributionFlags flags = AnimationDistributionFlags::None, int numSkippedFrames = 0, int distributeFramesBeforeFrame = 0, float previewShownGameTickFragments = 0.F);
 
 	/**
 	 * @brief Changes the Animation Data on-the-fly. This is needed if a animation is currently in progress and the player changes his gear.
@@ -91,7 +91,7 @@ public:
 	 * @param numberOfFrames Number of Frames in Animation
 	 * @param ticksPerFrame How many game ticks are needed to advance one Animation Frame
 	 */
-	void ChangeAnimationData(std::optional<CelSprite> celSprite, int numberOfFrames, int ticksPerFrame);
+	void ChangeAnimationData(OptionalCelSprite celSprite, int numberOfFrames, int ticksPerFrame);
 
 	/**
 	 * @brief Process the Animation for a game tick (for example advances the frame)

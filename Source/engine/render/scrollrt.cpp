@@ -515,7 +515,7 @@ void DrawPlayer(const Surface &out, int pnum, Point tilePosition, Point targetBu
 
 	Player &player = Players[pnum];
 
-	std::optional<CelSprite> sprite = player.AnimInfo.celSprite;
+	OptionalCelSprite sprite = player.AnimInfo.celSprite;
 	int nCel = player.AnimInfo.GetFrameToUseForRendering();
 
 	if (player.previewCelSprite) {
@@ -719,7 +719,7 @@ void DrawItem(const Surface &out, Point tilePosition, Point targetBufferPosition
 	if (item._iPostDraw == pre)
 		return;
 
-	std::optional<CelSprite> cel = item.AnimInfo.celSprite;
+	OptionalCelSprite cel = item.AnimInfo.celSprite;
 	if (!cel) {
 		Log("Draw Item \"{}\" 1: NULL CelSprite", item._iIName);
 		return;
