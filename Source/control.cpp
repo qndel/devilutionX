@@ -151,7 +151,7 @@ char TalkMessage[MAX_SEND_STR_LEN];
 bool TalkButtonsDown[3];
 int sgbPlrTalkTbl;
 bool WhisperList[MAX_PLRS];
-char panelstr[4][64];
+char panelstr[5][64];
 
 enum panel_button_id {
 	PanelButtonCharinfo,
@@ -262,8 +262,8 @@ void PrintInfo(const Surface &out)
 	if (talkflag)
 		return;
 
-	const int LineStart[] = { 70, 58, 52, 48, 46 };
-	const int LineHeights[] = { 30, 24, 18, 15, 12 };
+	const int LineStart[] = { 70, 58, 52, 48, 46, 46 };
+	const int LineHeights[] = { 30, 24, 18, 15, 12, 12 };
 
 	Rectangle line { GetMainPanel().position + Displacement { 177, LineStart[pnumlines] }, { 288, 12 } };
 
@@ -464,7 +464,7 @@ void AddPanelString(string_view str)
 {
 	CopyUtf8(panelstr[pnumlines], str, sizeof(*panelstr));
 
-	if (pnumlines < 4)
+	if (pnumlines < 5)
 		pnumlines++;
 }
 

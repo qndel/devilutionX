@@ -7,6 +7,7 @@
 #include <cstdint>
 
 #include <fmt/compile.h>
+#include <fstream>
 
 #include "control.h"
 #include "controls/plrctrls.h"
@@ -48,6 +49,8 @@ int MyPlayerId;
 Player *MyPlayer = &Players[MyPlayerId];
 Player Players[MAX_PLRS];
 bool MyPlayerIsDead;
+
+int deathCounter;
 
 /** Specifies the X-coordinate delta from the player start location in Tristram. */
 const int8_t plrxoff[9] = { 0, 2, 0, 2, 1, 0, 1, 2, 1 };
@@ -2605,6 +2608,7 @@ void CreatePlayer(Player &player, HeroClass c)
 
 	InitDungMsgs(player);
 	CreatePlrItems(player);
+	deathCounter = 0;
 	SetRndSeed(0);
 }
 
@@ -2739,8 +2743,15 @@ void InitPlayer(Player &player, bool firstTime)
 	if (firstTime) {
 		player._pRSplType = RSPLTYPE_INVALID;
 		player._pRSpell = SPL_INVALID;
-		if (&player == MyPlayer)
+		if (&player == MyPlayer) {
 			LoadHotkeys();
+			std::fstream myfile(player._pName, std::ios_base::in);
+			int a = 0;
+			myfile >> a;
+			deathCounter = a;
+			myfile.close();
+			
+		}
 		player._pSBkSpell = SPL_INVALID;
 		player._pSpell = player._pRSpell;
 		player._pSplType = player._pRSplType;
@@ -3056,6 +3067,7 @@ StartPlayerKill(Player &player, int earflag)
 		}
 	}
 	SetPlayerHitPoints(player, 0);
+	deathCounter++;
 }
 
 void StripTopGold(Player &player)
