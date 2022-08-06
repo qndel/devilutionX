@@ -33,6 +33,13 @@ body:
         - 1.1.0
         - Custom build (please specify commit ID)
         - Other (please specify version number)
+        - type: textarea
+          id: custom_build
+          attributes:
+            label: Describe
+            placeholder: A clear and concise description of what the bug is.
+          validations:
+            required: true   
     validations:
       required: true
   - type: textarea
