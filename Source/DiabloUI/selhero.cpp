@@ -461,14 +461,15 @@ void selhero_Init()
 	SELHERO_DIALOG_HERO_IMG = heroImg.get();
 	vecSelHeroDialog.push_back(std::move(heroImg));
 
-	const UiFlags statFlags = UiFlags::AlignRight | UiFlags::FontSize12 | UiFlags::ColorUiSilverDark;
+	const UiFlags labelFlags = UiFlags::AlignRight | UiFlags::FontSize12 | UiFlags::ColorUiSilverDark;
+	const UiFlags statFlags = UiFlags::AlignCenter | UiFlags::FontSize12 | UiFlags::ColorUiSilverDark;
 	const int labelX = uiPosition.x + 39;
 	const int valueX = uiPosition.x + 159;
 	const int labelWidth = 110;
 	const int valueWidth = 40;
 	const int statHeight = 21;
 
-	vecSelHeroDialog.push_back(std::make_unique<UiArtText>(_("Level:").data(), MakeSdlRect(labelX, uiPosition.y + 323, labelWidth, statHeight), statFlags));
+	vecSelHeroDialog.push_back(std::make_unique<UiArtText>(_("Level:").data(), MakeSdlRect(labelX, uiPosition.y + 323, labelWidth, statHeight), labelFlags));
 	vecSelHeroDialog.push_back(std::make_unique<UiArtText>(textStats[0], MakeSdlRect(valueX, uiPosition.y + 323, valueWidth, statHeight), statFlags));
 
 	const char *statLabels[] {
@@ -479,7 +480,7 @@ void selhero_Init()
 	};
 	int statY = uiPosition.y + 358;
 	for (size_t i = 0; i < sizeof(statLabels) / sizeof(statLabels[0]); ++i) {
-		vecSelHeroDialog.push_back(std::make_unique<UiArtText>(statLabels[i], MakeSdlRect(labelX, statY, labelWidth, statHeight), statFlags));
+		vecSelHeroDialog.push_back(std::make_unique<UiArtText>(statLabels[i], MakeSdlRect(labelX, statY, labelWidth, statHeight), labelFlags));
 		vecSelHeroDialog.push_back(std::make_unique<UiArtText>(textStats[i + 1], MakeSdlRect(valueX, statY, valueWidth, statHeight), statFlags));
 		statY += statHeight;
 	}
