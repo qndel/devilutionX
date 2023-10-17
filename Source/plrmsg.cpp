@@ -71,7 +71,7 @@ void EventPlrMsg(string_view text, UiFlags style)
 	message.style = style;
 	message.time = SDL_GetTicks();
 	message.text = std::string(text);
-	message.from = string_view(message.text.data(), 0);
+	message.from = {};
 	message.lineHeight = GetLineHeight(message.text, GameFont12) + 3;
 	AddMessageToChatLog(text);
 }
