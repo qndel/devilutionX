@@ -31,7 +31,7 @@ struct PlayerMessage {
 	/** The text message to display on screen */
 	std::string text;
 	/** First portion of text that should be rendered in gold */
-	std::string_view from;
+	std::string from;
 	/** The line height of the text */
 	int lineHeight;
 };
@@ -73,7 +73,6 @@ void EventPlrMsg(std::string_view text, UiFlags style)
 	message.style = style;
 	message.time = SDL_GetTicks();
 	message.text = std::string(text);
-	message.from = std::string_view(message.text.data(), 0);
 	message.lineHeight = GetLineHeight(message.text, GameFont12) + 3;
 	AddMessageToChatLog(text);
 }
@@ -86,8 +85,8 @@ void SendPlrMsg(Player &player, std::string_view text)
 
 	message.style = UiFlags::ColorWhite;
 	message.time = SDL_GetTicks();
-	message.text = from + std::string(text);
-	message.from = std::string_view(message.text.data(), from.size());
+	message.text = std::string(text);
+	message.from = from;
 	message.lineHeight = GetLineHeight(message.text, GameFont12) + 3;
 	AddMessageToChatLog(text, &player);
 }
@@ -124,13 +123,17 @@ void DrawPlrMsg(const Surface &out)
 		if (!talkflag && SDL_GetTicks() - message.time >= 10000)
 			break;
 
-		std::string text = WordWrapString(message.text, width);
+		std::string text = WordWrapString(message.from + message.text, width, devilution::GameFont12, 1, false);
 		int chatlines = CountLinesOfText(text);
-		y -= message.lineHeight * chatlines;
+		const int messageHeight = message.lineHeight * chatlines;
+		y -= messageHeight;
 
-		DrawHalfTransparentRectTo(out, x - 3, y, width + 6, message.lineHeight * chatlines);
-		DrawString(out, text, { { x, y }, { width, 0 } }, message.style, 1, message.lineHeight);
-		DrawString(out, message.from, { { x, y }, { width, 0 } }, UiFlags::ColorWhitegold, 1, message.lineHeight);
+		DrawHalfTransparentRectTo(out, x - 3, y, width + 6, messageHeight);
+		std::vector<DrawStringFormatArg> args {
+			{ message.from, UiFlags::ColorWhitegold },
+			{ message.text, UiFlags::ColorWhite }
+		};
+		DrawStringWithColors(out, "{0}{1}", args, { { x, y }, { width, 0 } }, UiFlags::ColorWhite, /*spacing=*/1, message.lineHeight);
 	}
 }
 

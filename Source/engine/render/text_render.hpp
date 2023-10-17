@@ -151,7 +151,7 @@ int GetLineHeight(std::string_view text, GameFontTables fontIndex);
  * @param spacing Any adjustment to apply between each character
  * @return A copy of the source text with newlines inserted where appropriate
  */
-[[nodiscard]] std::string WordWrapString(std::string_view text, unsigned width, GameFontTables size = GameFont12, int spacing = 1);
+[[nodiscard]] std::string WordWrapString(std::string_view text, unsigned width, GameFontTables size = GameFont12, int spacing = 1, bool wrapOnWhitespace = true);
 
 /**
  * @brief Draws a line of text within a clipping rectangle (positioned relative to the origin of the output buffer).

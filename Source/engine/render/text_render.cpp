@@ -572,7 +572,7 @@ int AdjustSpacingToFitHorizontally(int &lineWidth, int maxSpacing, int character
 	return maxSpacing - spacingRedux;
 }
 
-std::string WordWrapString(std::string_view text, unsigned width, GameFontTables size, int spacing)
+std::string WordWrapString(std::string_view text, unsigned width, GameFontTables size, int spacing, bool wrapOnWhitespace)
 {
 	std::string output;
 	if (text.empty() || text[0] == '\0')
@@ -619,7 +619,7 @@ std::string WordWrapString(std::string_view text, unsigned width, GameFontTables
 			lineWidth += (*currentFont.sprite)[frame].width() + spacing;
 		}
 
-		if (IsWhitespace(codepoint)) {
+		if (wrapOnWhitespace && IsWhitespace(codepoint)) {
 			lastBreakablePos = remaining.data() - begin - codepointLen;
 			lastBreakableLen = codepointLen;
 			continue;
