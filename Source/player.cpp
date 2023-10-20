@@ -2472,7 +2472,7 @@ void InitPlayer(Player &player, bool firstTime)
 
 		if (player._pHitPoints >> 6 > 0) {
 			player._pmode = PM_STAND;
-			NewPlrAnim(player, player_graphic::Stand, Direction::South);
+			NewPlrAnim(player, player_graphic::Stand, player._pdir);
 			player.AnimInfo.currentFrame = GenerateRnd(player._pNFrames - 1);
 			player.AnimInfo.tickCounterOfCurrentFrame = GenerateRnd(3);
 		} else {
@@ -2481,8 +2481,6 @@ void InitPlayer(Player &player, bool firstTime)
 			NewPlrAnim(player, player_graphic::Death, Direction::South);
 			player.AnimInfo.currentFrame = player.AnimInfo.numberOfFrames - 2;
 		}
-
-		player._pdir = Direction::South;
 
 		if (&player == MyPlayer && (!firstTime || leveltype != DTYPE_TOWN)) {
 			player.position.tile = ViewPosition;

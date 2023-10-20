@@ -2040,7 +2040,7 @@ size_t OnPlayerJoinLevel(const TCmd *pCmd, size_t pnum)
 		if (player.isOnActiveLevel()) {
 			SyncInitPlr(player);
 			if ((player._pHitPoints >> 6) > 0) {
-				StartStand(player, Direction::South);
+				StartStand(player, player._pdir);
 			} else {
 				player._pgfxnum &= ~0xFU;
 				player._pmode = PM_DEATH;

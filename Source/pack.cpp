@@ -319,6 +319,7 @@ void PackNetPlayer(PlayerNetPack &packed, const Player &player)
 	packed.plrlevel = player.plrlevel;
 	packed.px = player.position.tile.x;
 	packed.py = player.position.tile.y;
+	packed.pdir = static_cast<uint8_t>(player._pdir);
 	CopyUtf8(packed.pName, player._pName, sizeof(packed.pName));
 	packed.pClass = static_cast<uint8_t>(player._pClass);
 	packed.pBaseStr = player._pBaseStr;
@@ -552,6 +553,8 @@ bool UnPackNetPlayer(const PlayerNetPack &packed, Player &player)
 
 	ValidateField(packed.pClass, packed.pClass < enum_size<HeroClass>::value);
 	player._pClass = static_cast<HeroClass>(packed.pClass);
+	ValidateField(packed.pdir, packed.pdir < enum_size<Direction>::value);
+	player._pdir = static_cast<Direction>(packed.pdir);
 
 	Point position { packed.px, packed.py };
 	ValidateFields(position.x, position.y, InDungeonBounds(position));

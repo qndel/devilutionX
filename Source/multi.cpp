@@ -858,7 +858,7 @@ void recv_plrinfo(int pnum, const TCmdPlrInfoHdr &header, bool recv)
 	}
 
 	if (player._pHitPoints >> 6 > 0) {
-		StartStand(player, Direction::South);
+		StartStand(player, player._pdir);
 		return;
 	}
 
