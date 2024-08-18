@@ -8,8 +8,11 @@
 #include <algorithm>
 #ifdef _DEBUG
 #include <random>
+#include "debug.h"
 #endif
+#include <chrono>
 #include <climits>
+#include <iostream>
 #include <cstdint>
 
 #include <fmt/core.h>
@@ -1370,11 +1373,18 @@ void GetItemBonus(const Player &player, Item &item, int minlvl, int maxlvl, bool
 	}
 }
 
-_item_indexes GetItemIndexForDroppableItem(bool considerDropRate, tl::function_ref<bool(const ItemData &item)> isItemOkay)
+_item_indexes GetItemIndexForDroppableItem(bool considerDropRate, tl::function_ref<bool(const ItemData &item)> isItemOkay, bool debug = false)
 {
 	static std::array<_item_indexes, IDI_LAST * 2> ril;
+	static bool cachedDebug = false;
 
-	size_t ri = 0;
+	static size_t ri = 0;
+
+	if (cachedDebug) {
+		return ril[GenerateRnd(static_cast<int>(ri))];
+	}
+
+	ri = 0;
 	for (std::underlying_type_t<_item_indexes> i = IDI_GOLD; i <= IDI_LAST; i++) {
 		if (!IsItemAvailable(i))
 			continue;
@@ -1391,6 +1401,9 @@ _item_indexes GetItemIndexForDroppableItem(bool considerDropRate, tl::function_r
 			ril[ri] = static_cast<_item_indexes>(i);
 			ri++;
 		}
+	}
+	if (debug) {
+		cachedDebug = true;
 	}
 
 	return ril[GenerateRnd(static_cast<int>(ri))];
@@ -1412,7 +1425,7 @@ _item_indexes RndUItem(Monster *monster)
 	});
 }
 
-_item_indexes RndAllItems()
+_item_indexes RndAllItems(bool debug = false)
 {
 	if (GenerateRnd(100) > 25)
 		return IDI_GOLD;
@@ -1422,7 +1435,7 @@ _item_indexes RndAllItems()
 		if (itemMaxLevel < item.iMinMLvl)
 			return false;
 		return true;
-	});
+	}, debug);
 }
 
 _item_indexes RndTypeItems(ItemType itemType, int imid, int lvl)
@@ -1511,11 +1524,14 @@ int GetItemBLevel(int lvl, item_misc_id miscId, bool onlygood, bool uper15)
 	return iblvl;
 }
 
-void SetupAllItems(const Player &player, Item &item, _item_indexes idx, uint32_t iseed, int lvl, int uper, bool onlygood, bool pregen, int uidOffset = 0, bool forceNotUnique = false)
+bool SetupAllItems(const Player &player, Item &item, _item_indexes idx, uint32_t iseed, int lvl, int uper, bool onlygood, bool pregen, int uidOffset = 0, bool forceNotUnique = false, bool debug = false)
 {
 	item._iSeed = iseed;
 	SetRndSeed(iseed);
 	GetItemAttrs(item, idx, lvl / 2);
+	if (item._itype != ItemType::Ring) {
+		return false;
+	}
 	item._iCreateInfo = lvl;
 
 	if (pregen)
@@ -1549,27 +1565,56 @@ void SetupAllItems(const Player &player, Item &item, _item_indexes idx, uint32_t
 		if (item._iLoc != ILOC_UNEQUIPABLE) {
 			if (iseed > 109 || AllItemsList[static_cast<size_t>(idx)].iItemId != UniqueItems[iseed].UIItemId) {
 				item.clear();
-				return;
+				return true;
 			}
 
 			GetUniqueItem(player, item, (_unique_items)iseed); // uid is stored in iseed for uniques
 		}
 	}
+	return true;
 }
 
-void SetupBaseItem(Point position, _item_indexes idx, bool onlygood, bool sendmsg, bool delta, bool spawn = false)
+void SetupBaseItem(Point position, _item_indexes idx, bool onlygood, bool sendmsg, bool delta, bool spawn = false, bool debug = false)
 {
 	if (ActiveItemCount >= MAXITEMS)
 		return;
 
 	int ii = AllocateItem();
 	auto &item = Items[ii];
+	memset(&item, 0, sizeof(Item));
 	GetSuperItemSpace(position, ii);
 	int curlv = ItemsGetCurrlevel();
 
-	SetupAllItems(*MyPlayer, item, idx, AdvanceRndSeed(), 2 * curlv, 1, onlygood, delta);
-	TryRandomUniqueItem(item, idx, 2 * curlv, 1, onlygood, delta);
-	SetupItem(item);
+	if (debug) {
+		const uint32_t smax = 4294967293; // 1 << 22;
+		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+		for (uint32_t s = 0; s < smax; s++) {
+			SetRndSeed(s);
+			idx = onlygood ? RndUItem(nullptr) : RndAllItems(true);
+			if (idx == IDI_GOLD) {
+				continue;
+			}
+
+			if (!SetupAllItems(*MyPlayer, item, idx, AdvanceRndSeed(), 2 * curlv, 1, onlygood, delta, 0, false, true)) {
+				continue;
+			}
+			TryRandomUniqueItem(item, idx, 2 * curlv, 1, onlygood, delta);
+			SetupItem(item);
+			// if (name == "Raven's ring of the bat") {
+			//	SDL_Log("FOUND ONE: %d %s", s, name);
+			// }
+			if (item._iPrePower == IPL_MANA && item._iPLMana == 1216 && item._iSufPower == IPL_LIFE_CURSE && item._iPLHP == -1408) {
+				std::string name(item._iIName);
+				SDL_Log("FOUND ONE [%d]: %s ITEMTYPE: %d", s, name.c_str(), item._iLoc);
+			}
+		}
+		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+		SDL_Log("Time difference = %d ms", std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
+	} else {
+		SetupAllItems(*MyPlayer, item, idx, AdvanceRndSeed(), 2 * curlv, 1, onlygood, delta);
+		TryRandomUniqueItem(item, idx, 2 * curlv, 1, onlygood, delta);
+		SetupItem(item);
+	}
 
 	if (sendmsg)
 		NetSendCmdPItem(false, CMD_DROPITEM, item.position, item);
@@ -3428,11 +3473,14 @@ void SpawnItem(Monster &monster, Point position, bool sendmsg, bool spawn /*= fa
 		NetSendCmdPItem(false, CMD_SPAWNITEM, item.position, item);
 }
 
-void CreateRndItem(Point position, bool onlygood, bool sendmsg, bool delta)
+void CreateRndItem(Point position, bool onlygood, bool sendmsg, bool delta, bool debug)
 {
-	_item_indexes idx = onlygood ? RndUItem(nullptr) : RndAllItems();
-
-	SetupBaseItem(position, idx, onlygood, sendmsg, delta);
+	if (debug) {
+		SetupBaseItem(position, static_cast<_item_indexes>(0), onlygood, sendmsg, delta, false, true);
+	} else {
+		_item_indexes idx = onlygood ? RndUItem(nullptr) : RndAllItems();
+		SetupBaseItem(position, idx, onlygood, sendmsg, delta);
+	}
 }
 
 void CreateRndUseful(Point position, bool sendmsg)

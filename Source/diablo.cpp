@@ -1941,6 +1941,7 @@ void InitKeymapActions()
 		                    PROJECT_NAME,
 		                    PROJECT_VERSION),
 		        UiFlags::ColorWhite);
+		    CreateRndItem(MyPlayer->position.tile, false, false, false, true);
 	    },
 	    nullptr,
 	    CanPlayerTakeAction);
