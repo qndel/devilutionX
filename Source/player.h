@@ -40,7 +40,7 @@ constexpr int MaxResistance = 75;
 constexpr uint8_t MaxSpellLevel = 15;
 constexpr int PlayerNameLength = 32;
 
-constexpr size_t NumHotkeys = 12;
+constexpr size_t NumHotkeys = 100;
 
 /** Walking directions */
 enum {
