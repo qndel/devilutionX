@@ -21,7 +21,7 @@ set(hellfire_mod
   ui_art/mainmenuw.clx)
 
 if(NOT UNPACKED_MPQS)
-  list(APPEND devilutionx_assets
+  list(APPEND hellfire_mod
     data/inv/objcurs2-widths.txt)
 endif()
 
